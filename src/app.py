@@ -21,6 +21,7 @@ device_status = DeviceStatus()
 adxl345 = ADXL345()
 adxl345.run()
 
+"""
 while True:
     # Poll interrupt signal
     if GPIO.input(INT1):
@@ -35,4 +36,11 @@ while True:
 
     # Update device status (battery)
 
+    time.sleep(0.5)
+"""
+
+while True:
+    if GPIO.input(INT1):
+        print('INT1 is high')
+        adxl345.clear_int()
     time.sleep(0.5)
