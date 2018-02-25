@@ -1,15 +1,15 @@
 import time
 import RPi.GPIO as GPIO
 
-from src.adxl345 import ADXL345
-from src.device_status import DeviceStatus
+from adxl345 import ADXL345
+from device_status import DeviceStatus
 
 # Set GPIO mode to use board numbering scheme
 GPIO.setmode(GPIO.BOARD)
 
 # GPIO pins
-INT1 = 11
-INT2 = 13
+INT1 = 13
+INT2 = 15
 
 # Set GPIO pin directions
 GPIO.setup([INT1, INT2], GPIO.IN)
@@ -38,9 +38,12 @@ while True:
 
     time.sleep(0.5)
 """
-
+# adxl345.clear_int()
 while True:
     if GPIO.input(INT1):
         print('INT1 is high')
+        adxl345.clear_int()
+    if GPIO.input(INT2):
+        print('INT2 is high')
         adxl345.clear_int()
     time.sleep(0.5)
