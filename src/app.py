@@ -1,5 +1,6 @@
 import time
 import RPi.GPIO as GPIO
+import monitor as batMonitor
 
 from adxl345 import ADXL345
 from device_status import DeviceStatus
@@ -35,6 +36,9 @@ adxl345.run()
 
 while True:
     # Wait for interrupt interval
+    battery = batMonitor.battery_monitor();
+    print(battery)
+  
     time.sleep(watch_interval)
     
     print('Interrupt count = {}'.format(trig_int_count))
