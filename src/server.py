@@ -7,7 +7,7 @@ import uuid
 
 # Third-party imports
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import db, credentials
 from sleekxmpp.clientxmpp import ClientXMPP
 from sleekxmpp.xmlstream.handler.callback import Callback
 from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
@@ -74,14 +74,19 @@ class Client(ClientXMPP):
     """
     def recv_message(self, msg):
         # Get message contents
+        print '\n\n%s\n\n' % (msg.xml.find('{google:mobile:data}gcm'))
         msg_body = json.loads(msg.xml.find('{google:mobile:data}gcm').text)
         logging.debug('Received message: %s' % (json.dumps(msg_body)))
+        
+        if not 'category' in msg_body:
+            return
         
         # Build ack message body and format as XMPP message
         ack_body = {
             'to': msg_body['from'],
             'message_id': msg_body['message_id'],
-            'message_type': 'ack'}
+            'message_type': 'ack'
+        }
         ack_msg = '<message id=""><gcm xmlns="google:mobile:data">' + json.dumps(ack_body) + '</gcm></message>'
         
         # Send ack
@@ -94,3 +99,19 @@ class Client(ClientXMPP):
                 self.cmd_q.append('TOGGLE_ARMED')
             elif msg_data['command'] == 'DISARM_ALARM':
                 self.cmd_q.append('DISARM_ALARM')
+    
+    def send_notification(self, title, body):
+        # Build notification body
+        notif_body = {
+            'to': db.reference('reg_id').get(),
+            'message_id': uuid.uuid4().hex,
+            'notification': {
+                'title': str(title),
+                'body': str(body)
+            },
+            'time_to_live': 600
+        }
+        notif_msg = '<message id=""><gcm xmlns="google:mobile:data">' + json.dumps(notif_body) + '</gcm></message>'
+        
+        # Send notification
+        self.send_raw(notif_msg)

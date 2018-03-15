@@ -53,6 +53,7 @@ def main_thread():
                 device_status.triggered = True
                 
                 # Send push notification
+                client.send_notification('hi', 'hallo')
                 logging.debug('Push notification sent')
                 
         
