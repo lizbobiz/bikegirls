@@ -1,71 +1,92 @@
+# Standard library imports
+import logging
+import threading
 import time
-import RPi.GPIO as GPIO
-import monitor as batMonitor
 
-from adxl345 import ADXL345
+# Third-party imports
+from firebase_admin import db
+
+# Local imports
+import gpio
 from device_status import DeviceStatus
+from motion_watch import MotionWatch
+from server import get_fcm_app, delete_fcm_app, Client
 
-# Total motion duration for suspicious motion (seconds)
-watch_total_duration = 3
 
-#Interrupt watch interval duration (seconds)
-watch_interval = 1
+# Enable debug logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(levelname)7s %(module)12s:%(lineno)-4s %(message)s')
 
-# Consecutive number of interrupts to determine suspicious motion
-trig_int_threshold = watch_total_duration / watch_interval
-trig_int_count = 0
+def main_thread():
+    # Configuation GPIO pins
+    gpio.init_gpio()
 
-# Set GPIO mode to use board numbering scheme
-GPIO.setmode(GPIO.BOARD)
+    # Create Firebase app instance
+    fcm_app = get_fcm_app()
 
-# GPIO pins
-INT1 = 13
-INT2 = 15
-alarm = 16
+    # Create and initialize XMPP client instance
+    client = Client()
 
-# Set GPIO pin directions
-GPIO.setup([INT1, INT2], GPIO.IN)
-GPIO.setup(alarm, GPIO.OUT)
+    # Create device status object and push it up to database
+    device_status = DeviceStatus()
+    db.reference('device_status').set(vars(device_status))
 
-# Create device status object
-device_status = DeviceStatus()
+    # Create motion watch object
+    motion_watch = MotionWatch()
 
-# Setup ADXL345 and enable measurement mode
-adxl345 = ADXL345()
-adxl345.run()
+    # Main program loop
+    while True:
+        logging.debug('New main loop iteration')
+        
+        # If device is enabled, check for motion
+        if device_status.armed:
+            logging.debug('Checking for suspicious motion')
+            if motion_watch.is_motion_detected():
+                logging.debug('Suspicious motion detected')
+                
+                # Trigger alarm
+                motion_watch.trigger_alarm()
+                logging.debug('Alarm triggered')
+                
+                # Update device status
+                device_status.triggered = True
+                
+                # Send push notification
+                logging.debug('Push notification sent')
+                
+        
+        # Update battery percentage
+        
+        # Check for requests from app
+        if client.cmd_q:
+            cmd = client.cmd_q.pop(0)
+            logging.debug('%s command popped from queue' % (cmd))
+            
+            if cmd == 'TOGGLE_ARMED':
+                device_status.armed = not device_status.armed
+                if device_status.armed:
+                    motion_watch.enable()
+                else:
+                    motion_watch.disable()
+                logging.debug('Device status armed toggled')
+            elif cmd == 'DISARM_ALARM':
+                device_status.triggered = False
+                motion_watch.disarm_alarm()
+                logging.debug('Alarm disarmed and device status updated')
+        
+        # Push device status object up to database
+        db.reference('device_status').set(vars(device_status))
+        logging.debug('Device status pushed to database')
+        
+        # Sleep for watch interval duration
+        time.sleep(motion_watch.watch_interval)
 
-#take a measurement every minute
-poll_interval = 5
-time_counter = 0
-GPIO.output(alarm,1)
+    # Disconnect XMPP client
+    client.disconnect()
 
-while True:
-    # Wait for interrupt interval
-    
-    #if (time_counter >= poll_interval):
-     #   battery = batMonitor.bmonitor();
-      #  print(battery)
-       # time_counter = 0;
-    #else:
-     #   time_counter += 1
-  
-    time.sleep(watch_interval)
-    print('Time = {}'.format(time_counter))
-    
-    print('Interrupt count = {}'.format(trig_int_count))
-    
-    if (GPIO.input(INT1)):
-        trig_int_count += 1
-        adxl345.clear_int()
-    else:
-        trig_int_count = 0
-    
-    if (trig_int_count >= trig_int_threshold):
-        GPIO.output(alarm, 0)
-        print(GPIO.input(alarm))
-        print('TAMPERING DETECTED')
-        # delete after... just to shut off the alarm now. 
-        time.sleep(5)
-        GPIO.output(alarm, 1)
-        trig_int_count = 0
+    # Delete Firebase app instance
+    delete_fcm_app(fcm_app)
 
+thread = threading.Thread(target=main_thread)
+thread.start()

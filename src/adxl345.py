@@ -59,9 +59,11 @@ class ADXL345:
     def run(self):
         # Enable measurement mode
         bus.write_byte_data(self.addr, POWER_CTL, MEASURE)
+    
+    def standby(self):
+        # Enable standby mode
+        bus.write_byte_data(self.addr, POWER_CTL, 0x00)
 
     def clear_int(self):
-        # Read from all six axis data registers
+        # Read INT_SOURCE register to clear interrupts
         bus.read_byte_data(self.addr, INT_SOURCE)
-        print('Interrupt cleared')
-

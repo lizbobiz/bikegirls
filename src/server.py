@@ -1,34 +1,23 @@
+# Standard library imports
+import json
 import logging
 import socket
-import uuid
-import json
-import firebase_admin
 import time
+import uuid
 
-from firebase_admin import db, credentials
+# Third-party imports
+import firebase_admin
+from firebase_admin import credentials
 from sleekxmpp.clientxmpp import ClientXMPP
 from sleekxmpp.xmlstream.handler.callback import Callback
 from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
 
 
-logging.basicConfig(level=logging.DEBUG, format='%(levelname)7s %(module)12s:%(lineno)-4s %(message)s')
+# FCM database constants
+FCM_DB_URL = 'https://usask-bikegirls.firebaseio.com'
+FCM_DB_CERT_PATH = 'adminsdk.json'
 
-def getRegistrationToken():
-    # Authenticate database access
-    cred = credentials.Certificate('adminsdk.json')
-    app = firebase_admin.initialize_app(cred, {
-        'databaseURL': 'https://usask-bikegirls.firebaseio.com'
-    })
-    
-    # Get registration token
-    reg_id = db.reference('reg_id').get()
-    print
-    
-    # Delete app instance
-    firebase_admin.delete_app(app)
-    
-    return reg_id
-
+# FCM server XMPP constants
 FCM_SERVER_URL = 'fcm-xmpp.googleapis.com'
 FCM_SERVER_PORT = 5236
 FCM_SERVER_KEY = 'AAAA7um6H2g:APA91bEv-cpJzDphcno5y3jCVh0e73cI0WZZOydPZVpeMyY7Pj8gSVGZGYhmrjneAErYuk0h0CGtBHtXeMsT_qwgYTzAduNjeJkq1--lkZRrh8GaNYSfAam4k-vH-i96-NlG43phFp9o'
@@ -36,31 +25,72 @@ FCM_SENDER_ID = '1026123505512'
 FCM_JID = FCM_SENDER_ID + '@gcm.googleapis.com'
 FCM_SERVER_IP = socket.gethostbyname(FCM_SERVER_URL)
 
-class Client(ClientXMPP):
-    def __init__(self):
-        ClientXMPP.__init__(self, FCM_JID, FCM_SERVER_KEY, sasl_mech='PLAIN')
-        self.registerHandler(Callback(
-            'FCM Message',
-            MatchXPath('{%s}message/{%s}gcm' % (self.default_ns, 'google:mobile:data')),
-            self.recv_message)
-        )
-        self.auto_reconnect = False
-        self.connect((FCM_SERVER_IP, FCM_SERVER_PORT), use_tls=True, use_ssl=True, reattempt=False)
-        self.process(threaded=False)
-    
-    def recv_message(self, msg):
-        data = json.loads(msg.xml.find('{google:mobile:data}gcm').text)
-        
-        body = {
-            'data': {
-                'message': 'acknowledgement'
-            },
-            'to': getRegistrationToken(),
-            'message_id': data['message_id'],
-            'message_type': 'ack'
-        }
-        ack = '<message id=""><gcm xmlns="google:mobile:data">' + json.dumps(body) + '</gcm></message>'
-        self.send_raw(ack)
 
-client = Client()
-client.disconnect(wait=True)
+""" Get an authorized Firebase app instance. """
+def get_fcm_app():
+    return firebase_admin.initialize_app(
+        credentials.Certificate(FCM_DB_CERT_PATH),
+        { 'databaseURL': FCM_DB_URL })
+
+""" Delete the given Firebase app instance. """
+def delete_fcm_app(app):
+    firebase_admin.delete_app(app)
+
+
+class Client(ClientXMPP):
+    """
+    Create a new XMPP client to act as FCM app server, connect it to the FCM
+    server, and begin processing the XML stream.
+    """
+    def __init__(self):
+        # Create client with FCM server login info
+        super(Client, self).__init__(
+            FCM_JID,
+            FCM_SERVER_KEY,
+            sasl_mech='PLAIN')
+        
+        # Create pending command queue
+        self.cmd_q = []
+        
+        # Create handler for received messages
+        self.registerHandler(Callback(
+            'FCM Message Receive',
+            MatchXPath('{%s}message/{%s}gcm'% (self.default_ns, 'google:mobile:data')),
+            self.recv_message))
+        
+        # Connect to server and begin processing XML stream
+        self.auto_reconnect = False
+        self.connect(
+            (FCM_SERVER_IP, FCM_SERVER_PORT),
+            use_tls=True,
+            use_ssl=True,
+            reattempt=False)
+        self.process(threaded=True)
+    
+    """
+    Client handler for received messages. Upon receiving a message, an
+    acknowledgement message is sent to the client app and the command specified
+    in the received message is executed.
+    """
+    def recv_message(self, msg):
+        # Get message contents
+        msg_body = json.loads(msg.xml.find('{google:mobile:data}gcm').text)
+        logging.debug('Received message: %s' % (json.dumps(msg_body)))
+        
+        # Build ack message body and format as XMPP message
+        ack_body = {
+            'to': msg_body['from'],
+            'message_id': msg_body['message_id'],
+            'message_type': 'ack'}
+        ack_msg = '<message id=""><gcm xmlns="google:mobile:data">' + json.dumps(ack_body) + '</gcm></message>'
+        
+        # Send ack
+        self.send_raw(ack_msg)
+        
+        # Check command field, execute operation, and update database
+        msg_data = msg_body['data']
+        if 'command' in msg_data:
+            if msg_data['command'] == 'TOGGLE_ARMED':
+                self.cmd_q.append('TOGGLE_ARMED')
+            elif msg_data['command'] == 'DISARM_ALARM':
+                self.cmd_q.append('DISARM_ALARM')
