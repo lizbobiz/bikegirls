@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "usask-bikegirls",
+  "private_key_id": "dfb662421788572e0b206256e76e26a30420e39e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCs9l0z0RgtSr7U\nYEXm351ZAeSHXprFwe+/Ri8KSYJaxSFSOXGJg41sl+bPti0HSr/QheufXCkYnqlj\n8gbjEpgdbS/UIA4nzj/o7DtYTo+xxMQz2+Ve2C3+CKifLFdSDYEoAA5ZPLpWk76B\nD2hq2g4Gd4dDlT2ua5RHa9dXG7uIqAKyFEPQh68d/g7wZ/SYyougJQoRXoCsRJHM\nwGT0/rdWVC1la3vNblWw7kFDkxQkJIG7iVp4iX47UFRGTvjBWP1mYbyVE8U4PQgM\n6LSUB3Qfyjxeh8kjn0CuZzI+A1Kh21eGeDPfGnBmKC9pP2Ul1SMceaQtACMcNZ4L\nG3XVjbahAgMBAAECggEAGKiF6JeAfiKIGrB//rZ2EQSxTzBIWfW4Z5lKpwmMVUMB\n6V5Jprxzyt3MGOREvqOkPYb+LMm/jSQ/i4FrhG938sgId9I7Gmcv2tXk7wXCPCqM\ne0U4CeHBitQysACrEUZeGbUKVqQO/71P/UfUT9l3AuqDBPpPoSByswz3lhJc1dI7\n0VXc7dOEGDycLAcUC2n2WP2l+kUjl7vZtWvWuXWBi+o4DB7+lhWraZsJdriGFKA6\nabRpdEKilGdQ8jalSj5q+ZutzSxA/3asqSiebLtsNiz/ATBC/D5q8CWI+j1lF1Ni\niqsCbs+Idt/hVNNohADwkIb+C5YNMTI59njCMNstPQKBgQDmtM6wlHPyfFsFJHbB\nDEAV13/jhAGWu/DCvD6Y7B4hYHgGtp7IP8kh09dazGvL1Jq5/ogT7JvogPg/2/Ri\nQAnnlBol9tUbnEgS3PM1n8dGEsywp4yAq6JaF8ysjC5nclQs1PAYZG8xLPDTIMGW\n7QL7PrskFeqMlrM3liVKgPKPBQKBgQC/7N5FnRmff7QxXVLfIafG9npI9hgcVjM7\ngs105W/Gc+dmTUimnlvcdWsKxr/M1njaZ/D5szkp7/e4T7STEctV9nva9Npa8/5T\nMU69kqMwetDBo4HIQnc4e8e/nc5jeFe8LuO/uSsETbHbmlH4g/OTCIGcI2JQAlKv\nwjqWjh1D7QKBgQCUo4lHW14YrOY3ufaJCkt/xwguna4oX44O6RmrjPUcq/qo2KAU\nhIQht0rYxTvuZ1wI2WTy8U7BzdYjzqL1aiz3dwQh0ZYb4+TLwm8v7XGGRDZ82nY7\nsFk5knvb77U2EQMKn2bRUGQTWtEONdyEUM/K7+/CoBwt2Co/dg0wo0OjwQKBgQCz\n69ybqiEhM1i7hl9wKl7c2KfeykXkGrNAsOjnE0fr5TAi6YSYHpDDZZgJrDSWVOFK\n7nIrw+Zs+Ddko+QGk4Hpfn6xzyT8awwa9Xh5o4Q0qI4XWa8LC7Q0UWX6rneTLHgj\nRFnhnDdFe4im9E6wCRNI3YqT02AQ3XyipBTEm0m4KQKBgQCkqBgfSHtNvqk+cMop\nsnnytDRCUHsS849TLGC5YhyVR+g6EM+4rM3EbctkmTVyMPFc41sdik8e0pPKx+n7\nHEDnL52hmek4dhbM0cUKAaHBjyBRJPtPB6GSuPaQbPptj5ZM47bpqGLbWTVQFZdq\nCmMDpJzg2WxeRCYdoybQcN1mUQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-enf5v@usask-bikegirls.iam.gserviceaccount.com",
+  "client_id": "104878834108384118888",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-enf5v%40usask-bikegirls.iam.gserviceaccount.com"
+}
