@@ -16,7 +16,7 @@ class MotionWatch:
         # Interrupt watch interval (interrupts/second)
         self.watch_interval = 1
         # Consecutive interrupt threshold for suspicious motion (interrupts)
-        self.trig_int_threshold = self.watch_duration / self.watch_interval
+        self.trig_int_threshold = self.watch_duration*self.watch_interval
         # Consecutive interrupt counter (interrupts)
         self.trig_int_count = 0
         
@@ -42,6 +42,7 @@ class MotionWatch:
         
         # If count is above threshold, return true and reset count
         if self.trig_int_count >= self.trig_int_threshold:
+            logging.debug('Suspicious motion detected')
             self.trig_int_count = 0
             return True
         # If count is below threshold, return false

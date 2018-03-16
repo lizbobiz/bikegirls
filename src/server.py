@@ -29,8 +29,7 @@ FCM_SERVER_IP = socket.gethostbyname(FCM_SERVER_URL)
 """ Get an authorized Firebase app instance. """
 def get_fcm_app():
     return firebase_admin.initialize_app(
-        credentials.Certificate(FCM_DB_CERT_PATH),
-        { 'databaseURL': FCM_DB_URL })
+        options={ 'databaseURL': FCM_DB_URL, 'httpTimeout': 5 })
 
 """ Delete the given Firebase app instance. """
 def delete_fcm_app(app):
@@ -74,7 +73,6 @@ class Client(ClientXMPP):
     """
     def recv_message(self, msg):
         # Get message contents
-        print '\n\n%s\n\n' % (msg.xml.find('{google:mobile:data}gcm'))
         msg_body = json.loads(msg.xml.find('{google:mobile:data}gcm').text)
         logging.debug('Received message: %s' % (json.dumps(msg_body)))
         
@@ -107,7 +105,8 @@ class Client(ClientXMPP):
             'message_id': uuid.uuid4().hex,
             'notification': {
                 'title': str(title),
-                'body': str(body)
+                'body': str(body),
+                'click_action': '.AlarmTriggeredActivity'
             },
             'time_to_live': 600
         }

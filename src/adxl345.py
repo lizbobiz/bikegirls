@@ -28,7 +28,7 @@ ACTIVITY = 0x10         # [D4] = 1'b1 in INT_ENABLE/INT_MAP
 
 FIFO_MODE = 0x80        # [D7:D6] = 2'b10 in FIFO_CTL
 
-ACT_THRESHOLD = 0x20    # [D7:D0] = 8'd8 in THRESH_ACT
+ACT_THRESHOLD = 0x1A    # [D7:D0] = 8'd8 in THRESH_ACT
 ACT_CONFIG = 0x70       # [D7:D0] = 8'h70 in ACT_INACT_CTL
 
 ########################################################################
