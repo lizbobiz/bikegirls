@@ -7,8 +7,8 @@ import RPi.GPIO as GPIO
 # LiPo battery voltage range - 
 ###### Change these values as well
 
-batt_min_voltage = 6.6
-batt_max_voltage = 7.4
+batt_min_voltage = 6.8
+batt_max_voltage = 8.0
 
 
 

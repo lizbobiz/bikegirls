@@ -14,31 +14,19 @@ from motion_watch import MotionWatch
 from server import get_fcm_app, delete_fcm_app, Client
 from monitor import bmonitor, low_battery_shutdown, voltage_divider
 
-#battery_counter = 0
 # Enable debug logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(levelname)7s %(module)12s:%(lineno)-4s %(message)s')
-    
-#battery_counter = 0
-device_status = DeviceStatus()
-fcm_app = get_fcm_app()
-db.reference('device_status').set(vars(device_status))
-
-sys.exit()
 
 def main_thread():
     # Configuation GPIO pins
     gpio.init_gpio()
 
-    #battery=bmonitor()
-   
-
     # Create Firebase app instance
     fcm_app = get_fcm_app()
 
     # Create and initialize XMPP client instance
-    
     client = Client()
     
     # Create device status object and push it up to database
@@ -47,7 +35,12 @@ def main_thread():
 
     # Create motion watch object
     motion_watch = MotionWatch()
-        
+    
+    # Initialize battery averaging values
+    max_battery_value_length = 100
+    battery_value_counter = 0
+    battery_value_list = []
+    
     # Main program loop
     while True:
         logging.debug('New main loop iteration')
@@ -71,10 +64,19 @@ def main_thread():
                 
                 logging.debug('Push notification sent')
         
-        # Update battery percentage
-        
+        # Store battery values, calculate the average and update battery status
+        if battery_value_counter < max_battery_value_length:
+            battery_value_list.append(bmonitor())
+            battery_value_counter += 1
+        else:
+            battery_value_sum = sum(battery_value_list)
+            battery_value_length = len(battery_value_list)
+            battery_value_avg = battery_value_sum / battery_value_length
+            battery_value_counter = 0
+            del battery_value_list[:]
+            device_status.battery = 100 * battery_value_avg
+            
         # Check for requests from app
-        
         if client.cmd_q:
             cmd = client.cmd_q.pop(0)
             logging.debug('%s command popped from queue' % (cmd))
@@ -92,9 +94,7 @@ def main_thread():
                 logging.debug('Alarm disarmed and device status updated')
         
         # Push device stastus object up to database
-        print '\n\nFLAG1\n\n'
         ref = db.reference('device_status')
-        print '\n\nFLAG2\n\n'
         ref.set(vars(device_status))
         logging.debug('Device status pushed to database')
         

@@ -14,22 +14,35 @@ from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
 
 
 # FCM database constants
-FCM_DB_URL = 'https://usask-bikegirls.firebaseio.com'
+FCM_DB_URL = 'https://bikegirls-usask.firebaseio.com'
 FCM_DB_CERT_PATH = 'adminsdk.json'
 
 # FCM server XMPP constants
 FCM_SERVER_URL = 'fcm-xmpp.googleapis.com'
 FCM_SERVER_PORT = 5236
-FCM_SERVER_KEY = 'AAAA7um6H2g:APA91bEv-cpJzDphcno5y3jCVh0e73cI0WZZOydPZVpeMyY7Pj8gSVGZGYhmrjneAErYuk0h0CGtBHtXeMsT_qwgYTzAduNjeJkq1--lkZRrh8GaNYSfAam4k-vH-i96-NlG43phFp9o'
-FCM_SENDER_ID = '1026123505512'
+FCM_SERVER_KEY = 'AAAAUdIjoY4:APA91bEJJlC1C-qr2tktdpJtXoxnHNIU8BE0goNpBVbORQczPFL3ZFmuafMk9w2GvTQ8sOx6BrgrU1zMDSoVTzrB8lYFXHu9zjGrUbK9ZohoNRGGVvC5PhrsoYbN0MT5NThfVDKZwihf'
+FCM_SENDER_ID = '351417901454'
 FCM_JID = FCM_SENDER_ID + '@gcm.googleapis.com'
-FCM_SERVER_IP = socket.gethostbyname(FCM_SERVER_URL)
+
+""" Get the IP of the FCM server. """
+def _get_fcm_server_ip():
+    # Repeatedly attempt to get hostname from server URL
+    while True:
+        try:
+            fcm_server_ip = socket.gethostbyname(FCM_SERVER_URL)
+            break
+        except socket.gaierror:
+            logging.error('Could not resolve hostname, trying again')
+            continue
+    
+    return fcm_server_ip
 
 
 """ Get an authorized Firebase app instance. """
 def get_fcm_app():
     return firebase_admin.initialize_app(
-        options={ 'databaseURL': FCM_DB_URL, 'httpTimeout': 5 })
+        credentials.Certificate(FCM_DB_CERT_PATH),
+        { 'databaseURL': FCM_DB_URL })
 
 """ Delete the given Firebase app instance. """
 def delete_fcm_app(app):
@@ -60,7 +73,7 @@ class Client(ClientXMPP):
         # Connect to server and begin processing XML stream
         self.auto_reconnect = False
         self.connect(
-            (FCM_SERVER_IP, FCM_SERVER_PORT),
+            (_get_fcm_server_ip(), FCM_SERVER_PORT),
             use_tls=True,
             use_ssl=True,
             reattempt=False)
