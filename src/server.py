@@ -15,7 +15,7 @@ from sleekxmpp.xmlstream.matcher.xpath import MatchXPath
 
 # FCM database constants
 FCM_DB_URL = 'https://bikegirls-usask.firebaseio.com'
-FCM_DB_CERT_PATH = 'adminsdk.json'
+FCM_DB_CERT_PATH = 'bikegirls-admin.json'
 
 # FCM server XMPP constants
 FCM_SERVER_URL = 'fcm-xmpp.googleapis.com'
