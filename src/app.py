@@ -38,8 +38,8 @@ def main_thread():
     
     # Initialize battery averaging values
     max_battery_value_length = 100
-    battery_value_counter = 0
-    #battery_value_list = [100*bmonitor()]
+    battery_value_counter = 100
+    battery_value_list = [100*bmonitor()]
     
     # Main program loop
     while True:
@@ -65,17 +65,16 @@ def main_thread():
                 logging.debug('Push notification sent')
         
         # Store battery values, calculate the average and update battery status
-        """
         if battery_value_counter < max_battery_value_length:
-            battery_value_list.append(bmonitor())
+            battery_value_list.append(100*bmonitor())
             battery_value_counter += 1
         else:
             battery_value_avg = sum(battery_value_list) / len(battery_value_list)
             battery_value_counter = 0
             del battery_value_list[:]
-            device_status.battery = 100 * battery_value_avg
-        """
-            
+            device_status.battery = battery_value_avg
+        logging.debug('battery_value_avg = %f' % battery_value_avg)
+        
         # Check for requests from app
         if client.cmd_q:
             cmd = client.cmd_q.pop(0)

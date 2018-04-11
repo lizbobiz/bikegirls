@@ -1,4 +1,5 @@
 import PCF8591 as ADC
+import logging
 import time
 import os
 import RPi.GPIO as GPIO
@@ -7,8 +8,8 @@ import RPi.GPIO as GPIO
 # LiPo battery voltage range - 
 ###### Change these values as well
 
-batt_min_voltage = 6.6
-batt_max_voltage = 8.0
+batt_min_voltage = 6.8
+batt_max_voltage = 7.4
 
 
 
@@ -54,38 +55,26 @@ def low_battery_shutdown():
 def bmonitor():
     # this is the effective max voltage, prior to the divider, that the ADC can register
     v_out = voltage_divider(vd_r1,vd_r2, batt_max_voltage)
-    #print "v out"
-    #print(v_out)
+    
     adc_conversion_factor = (gpio_max_voltage /v_out)*batt_max_voltage
-    print 'conversion'
-    print adc_conversion_factor
+    logging.debug('adc_conversion_factor = %f' % adc_conversion_factor)
+    
     # read the analog pins on the ACD (range 0-256) and convert to 0.0-1.|0
-    #print "ADC conversion factor"
-    #print(adc_conversion_factor)
     frac_v_bat = round(ADC.read_channel(v_bat_adc_pin)) / 255.0
-    #print"battery reading"
-    #print(frac_v_bat)
+    logging.debug('frac_v_bat = %f' % frac_v_bat)
+    
     v_bat = frac_v_bat*adc_conversion_factor
-    print 'v_bat'
-    print v_bat
-    print 'batt_min_voltage'
-    print batt_min_voltage
-    #print "v bat = bat* conversion"
-    #print(v_bat)
+    logging.debug('v_bat = %f' % v_bat)
+    
     fraction_battery = (v_bat - batt_min_voltage)/(batt_max_voltage - batt_min_voltage)
-    #print "** fraction battery "
-    #print(fraction_battery)
-    print fraction_battery
+    logging.debug('fraction_battery = %f' % fraction_battery)
+    
     if fraction_battery < fraction_battery_min:
         print "** LOW BATTERY - shutting down........"
         low_battery_shutdown()
-
-    # sleep poll_interval seconds between updates
-   # time.sleep(poll_interval)
+    
+    if fraction_battery > 1.0:
+        fraction_battery = 1.0
+    
     ## return the value of the battery fraction
     return fraction_battery
-
-
-#channel where the battery is connected 
-
-        
